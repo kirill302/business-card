@@ -1,0 +1,54 @@
+@mixin adaptiv-value($prop, $startSize, $minSize) {
+   $addSize: $startSize;
+
+   @media (max-width: $containerWidth) {
+      #{$prop}: calc(#{ $minSize + px} + (#{$addSize} - #{$minSize}) * ((100vw - 320px) / #{$container - 320}));
+   }
+}
+
+
+@mixin btn($padding-tb, $padding-lr, $font-size, $font-weight, $color, $bg, $border-radius, $color_hover, $bg_hover ) {
+   display: inline-block;
+   cursor: pointer;
+   padding: $padding-tb $padding-lr;
+
+   font-size: $font-size;
+   color: $color;
+   background: $bg;
+   border-radius: $border-radius;
+   font-weight: $font-weight;
+
+   transition: color, background-color .150s, .150s;
+
+   &:hover {
+      background: $bg_hover;
+      color: $color_hover;
+   }
+
+}
+
+@mixin title($color, $font-size, $font-weight) {
+   color: $color;
+   font-size: $font-size + px;
+   font-weight: $font-weight;
+
+   // adaptive
+   $min-size: $font-size * (2 / 3);
+
+   @include adaptiv-value('font-size', $font-size, $min-size);
+}
+
+%fxCenter {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+}
+%abCenter {
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
+}
+
+// @include adaptiv-value();
+// @extend %fxCenter;
+// @extend %abCenter;

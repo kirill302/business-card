@@ -1,0 +1,414 @@
+@charset "UTF-8";
+* {
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+*, *:before, *:after {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+:focus, :active {
+  outline: none;
+}
+
+a:focus, a:active {
+  outline: none;
+}
+
+nav, footer, header, aside {
+  display: block;
+}
+
+html, body, .wrapper {
+  height: 100%;
+  width: 100%;
+  font-size: 100%;
+  line-height: 1;
+  font-size: 14px;
+  -ms-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+input, button, textarea {
+  font-family: inherit;
+}
+
+input::-ms-clear {
+  display: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+button::-moz-focus-inner {
+  padding: 0;
+  border: 0;
+}
+
+a, a:visited {
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+ol li, ul li {
+  list-style: none;
+}
+
+img {
+  vertical-align: top;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-size: inherit;
+  font-weight: 400;
+}
+
+/*---------------------*/
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+body {
+  font-size: 16px;
+  color: #fff;
+  background: #333;
+}
+
+i {
+  font-style: normal;
+  font-weight: 500;
+}
+
+a {
+  font-weight: 900;
+  color: #238fad;
+}
+
+a:hover {
+  color: #23ad2c;
+}
+
+.wrapper {
+  margin: 0 auto;
+  max-width: 1000px;
+  padding: 100px 20px;
+}
+
+.header {
+  background: #333;
+  padding: 10px 20px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-column-gap: 20px;
+          column-gap: 20px;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  width: 100%;
+  -webkit-box-shadow: 0 3px 10px -5px #fff;
+          box-shadow: 0 3px 10px -5px #fff;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 2;
+}
+
+.logo {
+  -ms-flex-item-align: start;
+      align-self: flex-start;
+}
+
+.logo img {
+  width: 50px;
+  height: 50px;
+}
+
+@media (max-width: 1200px) {
+  .social {
+    font-size: calc(9px + (20 - 9) * ((100vw - 320px) / 880));
+  }
+}
+
+.social a {
+  color: #ffffff;
+  -webkit-transition: all .1s;
+  transition: all .1s;
+}
+
+@media (max-width: 1200px) {
+  .social a {
+    line-height: calc(20px + (30 - 20) * ((100vw - 320px) / 880));
+  }
+}
+
+.social a i {
+  font-size: 18px;
+}
+
+.social a:hover {
+  color: #333333;
+  text-shadow: 0 0 4px #fff;
+}
+
+pre {
+  text-align: left;
+}
+
+.tag {
+  color: #AA0920;
+  font-weight: bold;
+}
+
+.sv {
+  color: #669DCC;
+}
+
+.sv i:before {
+  content: '———';
+  color: rgba(210, 210, 210, 0.2);
+  margin-left: -23px;
+}
+
+main {
+  position: relative;
+  z-index: 1;
+}
+
+.description {
+  font-weight: 300;
+}
+
+.info {
+  min-height: 100px;
+  padding: 30px 0;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.accordions {
+  width: 100%;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  row-gap: 10px;
+}
+
+.accordion {
+  width: 100%;
+  -webkit-transition: background-color .1s;
+  transition: background-color .1s;
+  position: relative;
+  border-radius: 24px;
+  background: #fff;
+}
+
+.accordion h2 {
+  cursor: pointer;
+  padding: 10px;
+  font-weight: 500;
+  text-align: center;
+  text-transform: uppercase;
+  color: #333;
+}
+
+.accordion.active .accordion__content {
+  padding: 0 10px 10px 10px;
+  margin-top: 20px;
+  font-size: 15px;
+  opacity: 1;
+}
+
+.accordion .accordion__content {
+  font-weight: 300;
+  font-size: 0;
+  opacity: 0;
+  -webkit-transition: font-size, opacity 3s, .3s;
+  transition: font-size, opacity 3s, .3s;
+  color: #000000;
+}
+
+.accordion:active {
+  cursor: auto;
+}
+
+.accordion.active {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.accordion-tehnologies.active .accordion__content {
+  padding: 0 10px 0px 30px;
+}
+
+.accordion-tehnologies ol li {
+  list-style-type: decimal;
+}
+
+.accordion-tehnologies ol li::marker {
+  font-weight: 500;
+}
+
+.accordion-tehnologies.active li {
+  margin-bottom: 7px;
+}
+
+.accordion-conditions.active ol li {
+  list-style-type: decimal;
+  margin-bottom: 20px;
+}
+
+.accordion-conditions.active ol li::marker {
+  font-weight: 500;
+}
+
+.accordion-conditions.active.active {
+  padding: 0 10px 0px 26px;
+}
+
+.accordion-conditions.active.active ul li {
+  list-style-type: disc;
+  margin: 0 0 10px 19px;
+}
+
+.accordion-about summary {
+  cursor: pointer;
+}
+
+.accordion-about .accordion__content {
+  font-size: 0;
+}
+
+.accordion-about.active {
+  padding: 0 10px 0px 26px;
+}
+
+.accordion-about.active ol li {
+  list-style-type: decimal;
+  margin-bottom: 10px;
+}
+
+.accordion-about.active ol li::marker {
+  font-weight: 500;
+}
+
+.works {
+  position: relative;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
+  -ms-flex-pack: distribute;
+      justify-content: space-around;
+  padding-top: 40px;
+}
+
+.works h2 {
+  top: 0;
+  position: absolute;
+  left: 50%;
+  -webkit-transform: translate(-50%, 0);
+          transform: translate(-50%, 0);
+}
+
+.work__item {
+  -ms-flex-item-align: start;
+      align-self: flex-start;
+  overflow: hidden;
+  width: 45%;
+  margin-bottom: 20px;
+}
+
+.work__item.active {
+  border-left: 3px solid #000;
+}
+
+.work__item .work__content {
+  z-index: 1;
+  -webkit-transition: top .3s;
+  transition: top .3s;
+  font-size: 0;
+  padding-left: 10px;
+  opacity: 0;
+  -webkit-transition: opacity, font-size .3s, .2s;
+  transition: opacity, font-size .3s, .2s;
+}
+
+.work__item.active .work__content {
+  opacity: 1;
+  font-size: 20px;
+}
+
+.work__item.active p {
+  font-size: 17px;
+  line-height: 1.5;
+  border-bottom: 1px solid #fff;
+}
+
+.work__item.active h3 a {
+  font-size: 20px;
+  text-align: center;
+  text-align: center;
+}
+
+.work__item p {
+  max-height: 250px;
+  overflow: auto;
+}
+
+.work__intro {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: auto;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.price {
+  margin: 10px 0 5px 0;
+}
+
+.price:before {
+  content: 'цена: ';
+}
+
+.price:after {
+  content: 'руб.';
+}
+
+.time:before {
+  content: 'время: ';
+}
+
+.time:after {
+  content: 'дн.';
+}
+
+details {
+  line-height: 1.5;
+}
