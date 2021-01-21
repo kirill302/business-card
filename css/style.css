@@ -140,6 +140,10 @@ a:hover {
   height: 50px;
 }
 
+.social {
+  line-height: 22px;
+}
+
 @media (max-width: 1200px) {
   .social {
     font-size: calc(9px + (20 - 9) * ((100vw - 320px) / 880));
@@ -339,7 +343,7 @@ main {
   -ms-flex-item-align: start;
       align-self: flex-start;
   overflow: hidden;
-  width: 45%;
+  width: 32%;
   margin-bottom: 20px;
 }
 
@@ -387,6 +391,8 @@ main {
   height: auto;
   margin-bottom: 10px;
   cursor: pointer;
+  -o-object-fit: cover;
+     object-fit: cover;
 }
 
 .price {
@@ -411,4 +417,16 @@ main {
 
 details {
   line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .work__item {
+    width: 49%;
+  }
+}
+
+@media (max-width: 600px) {
+  .work__item {
+    width: 100%;
+  }
 }
