@@ -393,6 +393,7 @@ main {
   cursor: pointer;
   -o-object-fit: cover;
      object-fit: cover;
+  min-height: 200px;
 }
 
 .price {
