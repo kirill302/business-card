@@ -1,0 +1,763 @@
+$(function ()
+{  	
+	$.validator.rules = {};
+	loc=window.location.href;
+	curr=loc.replace(/.*?#/,'');
+	$('.tabs_box').find('a[href="#'+curr+'"]').click();
+	
+	if($('#description').length)
+	{
+		var wbbOpt = 
+		{
+			buttons: "bold,italic,underline,strike,|,bullist,numlist,|,link,|,h3",
+			allButtons: {
+				bullist: {
+					transform: {
+						'<ul>{SELTEXT}</ul>':'[list]{SELTEXT}[/list]',
+						'<li>{SELTEXT}</li>':'[*]{SELTEXT[^\[\]\*]}',
+					}
+				},
+				h3:	{
+					title: 'Заголовок',
+					buttonText: 'Заголовок',
+					transform: {
+						'<h3>{SELTEXT}</h3>':'[h3]{SELTEXT}[/h3]'
+					}
+				}
+			}, 
+			resize_maxheight: 300
+		};
+		$('#description').wysibb(wbbOpt);	
+	}
+	
+	$('#type_selector').on('change', function()
+	{
+		if ($(this).val() == 'phone') $('#phone_alert').removeClass('hidden');
+		else $('#phone_alert').addClass('hidden');
+	});
+	
+	$('#submit_profile').click(function(){
+		
+		$('input, select').attr('validate','false');
+		$(this).parents('form').find('input, select').attr('validate','true');		
+		$.validator.validate();
+		validate_username();
+		validate_location();
+		if($('#patro_name').val().length==0) 
+			{
+				$('#error_patro_name').addClass('hidden');	
+				$('#patro_name').removeClass('error');
+			}
+		
+		var errors = 0;
+		if($(this).parents('form').find('.error_label').each(function(i,item){
+			if($(item).is(':visible') && $(item).html()!='') errors++;
+		}));		
+		if(errors) return false;
+	});
+	
+	/*$('#title').bind('keyup',function(){		
+		var length = $(this).val().length;
+		var max_value = $(this).attr('maxlength');
+		$('#title_counter').val(max_value - length);
+	});
+	
+	if($('#title').length)
+	{
+		var length = $('#title').val().length;
+		var max_value = $('#title').attr('maxlength');
+		$('#title_counter').val(max_value - length);
+	}*/
+	
+	$('.add_contact').click(function(){
+		
+		var count = $(this).parent('div').find('.contact_field').length;
+		if(count >=3) return false;
+		
+		var first = $(this).parent('div').find('.contact_field:last');
+		$(this).prevAll('.contact_field:first').clone(true).insertAfter(first).addClass('hidden').fadeIn(200);
+		$(this).prevAll('.contact_field:first').find('.input_2').val('').removeAttr('disabled');		
+		var id = $(this).parent('div').attr('id')+'_';
+		var c = count+1;
+		id = id + c;
+		var block = $(this).prevAll('.contact_field:first');
+		block.find('.checkbox').val(id).attr('checked', false);
+		block.find('.main, .confirmed').addClass('hidden');
+		block.find('.confirm').removeClass('hidden').addClass('disabled');
+		block.find('.delete').removeClass('disabled');
+		block.find('.checkbox').removeAttr('disabled');
+		validator_bind($(this).parent('div'));
+		if(count==2) $(this).addClass('hidden');
+		return false;
+	});
+	
+	/*$('a.main').click(function(){
+		
+		$('#confirm_pass_window').modal('show');
+		
+		last_main_link = this;		
+		return false;
+	});*/
+	
+	$('#confirm_pass_btn').click(function(){
+		var pass = $('#conf_pass').val();
+		//if(pass=='') return;
+		var url='/ajax/?section=user&current_password='+encodeURIComponent(pass);
+		$.get(url,function(data){
+			if(!pass || data=='false')
+			{
+				$('#error_pass').removeClass('hidden').parents('.form-group').addClass('has-danger');
+				$('#conf_pass').bind('focus',function()
+						{
+							$('#error_pass').addClass('hidden').parents('.form-group').removeClass('has-danger');
+						});
+			}else
+			{
+				$('#set_main_contacts form').submit();
+			}
+		});
+	});
+	
+	$('.contact_edit').on('click',function(){
+		type = $(this).parents('.contact_row').data('type');
+		contact = $(this).parents('.contact_row').data('value');
+		var confirmed = $(this).parents('.contact_row').data('confirmed');
+
+		if($(this).parents('.contact_row').find('.public').html()!='')
+		{
+			$('#pub_changed').attr('checked','checked');
+		}else
+		{
+			$('#pub_changed').attr('checked', false);
+		}
+		
+		$('#change_contact').removeAttr('disabled');		
+		if (confirmed == 1) $('#change_contact').attr('disabled','disabled');
+		
+		//$('#type_selector').attr('disabled','disabled');
+		
+		$('#error_change_contact').html('');
+		$('#change_contact').removeClass('error');
+		$('#change_contact').val(contact);
+		$('#old_contact').val(contact);
+		$('#type_selector').val(type);
+		$('#change_contact_window').find('.comment').addClass('hidden');
+		$('#change_contact_window').find('.'+type+'_comment').removeClass('hidden');
+		
+		$('#change_contact_window').modal('show');
+		
+		var rules = get_rules_by_type(type);
+		var messages = get_messages_by_type(type);
+		$('#change_contact').attr('item_type',type);
+		$.validator.rules['change_contact'] = rules;
+		$.validator.messages['change_contact'] = messages;
+		
+		return false;
+	});
+	
+	$('#type_selector').bind('change',function(){$(this).removeClass('error');});
+	
+	$('#add_contact_btn').click(function(){
+		var type = $('#type_selector').val();
+		if(type=='')
+		{
+			$('#type_selector').addClass('error');
+			return;
+		}
+		var rules = get_rules_by_type(type);
+		var messages = get_messages_by_type(type);
+		$('#add_contact_value').attr('item_type',type);
+		$.validator.rules['add_contact_value'] = rules;
+		$.validator.messages['add_contact_value'] = messages;
+		$.validator.check_field('add_contact_value');
+		submit_add();
+	});
+	
+	$('#confirm_change_btn').click(function(){
+		$('#change_contact').attr('validate',true);
+		$.validator.check_field('change_contact');
+		var type = $('#type_selector').val();		
+		if(type=='')
+		{
+			$('#type_selector').addClass('error');
+			return;
+		}
+		var rules = get_rules_by_type(type);
+		var messages = get_messages_by_type(type);
+		$('#add_contact_value').attr('item_type',type);
+		$.validator.rules = {'change_contact' : rules};
+		$.validator.messages = {'change_contact' : messages};
+		console.log('validating');
+		$.validator.validate();
+		submit_change();
+		return false;
+	});
+	
+	$('.delete').click(function(){
+		if(!confirm('Вы уверены, что хотите удалить контакт?')) return;
+		
+		type = $(this).parents('.contact_row').data('type');
+		contact = $(this).parents('.contact_row').data('value');
+
+		var url='/ajax/?section=delete_contact&type='+type+'&contact='+contact;
+		$.get(url,function(data){
+			loc=window.location.href;
+			var curr=loc.replace(/.*?#/,'');
+			$.cookie('current_tab',curr,{ expires: 1,path : '/', domain : '.weblancer.net' });
+			location.reload();
+		});
+		return false;
+	});
+	
+	validator_bind($('#email'));
+	validator_bind($('#icq'));
+	validator_bind($('#skype'));
+	validator_bind($('#phone'));
+	validator_bind($('#jabber'));
+	
+	//textarea_add_counter($('#signature'),255);
+	setTimeout(function(){ $('#status_bar').fadeOut(400); },1000);
+	
+	$.validator.rules['password'] ={
+		required: true,
+		minlength: 6,
+		notEqualTo: "#login"
+	};
+	
+	$.validator.rules['current_password'] ={
+		required: true,
+		remote: '/ajax/?section=user'
+	};
+	
+	$.validator.rules['confirm_password']= {
+		//required: true,
+		equalTo: "#password"
+	};
+	
+	$.validator.messages['password'] ={
+			required: "Введите новый пароль.",
+			minlength: "Пароль не должен быть короче 6 символов.",
+			notEqualTo: "#login"
+		};
+		
+	$.validator.messages['current_password'] ={
+		required: "Введите текущий пароль.",
+		remote: "Текущий пароль введен неверно."
+	};
+	
+	$.validator.messages['confirm_password']= {
+		equalTo: "Пароли не совпадают." 
+	};
+	
+	$('#password').bind('blur',function(){$.validator.check_field('password');});
+	
+	$('#current_password').bind('blur',function(){$.validator.check_field('current_password');});
+	
+	$('#confirm_password').bind('blur',function(){$.validator.check_field('confirm_password');})
+	.bind('keyup',function(e)
+			{
+				if($('#password').val().length <= $('#confirm_password').val().length)
+				{
+					$.validator.check_field('confirm_password');
+				}
+			}
+	);
+	
+	$('#set_password').click(function()
+	{
+		$('#current_password, #password, #confirm_password').attr('validate', 'true');
+		
+		$.validator.check_field('current_password');
+		$.validator.check_field('password');
+		$.validator.check_field('confirm_password');
+		
+		if (!$('#current_password').hasClass('valid') || !$('#password').hasClass('valid') || !$('#confirm_password').hasClass('valid')) return false;		
+
+		$(this).parents('form').submit();
+		//$('#change_password_form').submit();
+	});
+	
+	$.validator.rules['first_name']= {
+		required: true,
+		minlength: 2,
+		username: "a"
+	};
+	
+	$.validator.rules['patro_name']= {
+			required: false,
+			minlength: 2,
+			username: "a"
+		};
+	
+	$.validator.rules['last_name']= {
+		required: true,
+		minlength: 2,
+		username: "a"
+	};
+	
+	$.validator.rules['birth_year']=
+	{
+		dateWL: "a"
+	};
+	
+	$.validator.rules['birth_month']=
+	{
+		dateWL: "a"
+	};
+	$.validator.rules['birth_day']=
+	{
+		dateWL: "a"
+	};
+	
+	$.validator.rules['city_id']=
+	{
+		required: true
+	};
+	
+	$.validator.rules['country_id']=
+	{
+		required: true
+	};
+	
+	$.validator.rules['website']=
+	{
+		url: true
+	};	
+	
+	$.validator.messages['first_name']= {
+		required: "Введите имя.",
+		minlength: "Имя не может быть короче {0} символов.",
+		username: "Имя не соответствует требованиям."
+	};
+	
+	$.validator.messages['patro_name']= {			
+			minlength: "Отчество не может быть короче {0} символов.",
+			username: "Отчество не соответствует требованиям."
+		};
+	
+	$.validator.messages['last_name']= {
+		required: "Введите фамилию.",
+		minlength: "Фамилия не может быть короче {0} символов.",
+		username: "Фамилия не соответствует требованиям."
+	};
+	$.validator.messages['city_id']= {
+		required: "Выберите город."
+	};
+	$.validator.messages['country_id']= {
+		required: "Выберите страну."
+	};
+	
+	$.validator.messages['birth_year']=
+	{
+		dateWL: "Неверно указана дата." 
+	};
+	
+	$.validator.messages['website']=
+	{
+		url: 'Адрес сайта введен неверно.'
+	};
+	
+	$('#birth_day, #birth_month, #birth_year').bind('change',function(){$.validator.check_field('birth_year');});
+	
+	$('#city_id,#country_id').bind('change',function(){validate_location();});
+	
+	$('#website').bind('blur',function(){$.validator.check_field('website');});
+	
+	$('#first_name, #last_name').bind('blur, focusout',validate_username)
+	.bind('keyup',function()
+			{
+				if($.validator.check_rule('first_name', 'minlength',true) && $.validator.check_rule('last_name', 'minlength',true))
+				{
+					validate_username();
+				}				
+			});
+	
+	$('#patro_name').bind('blur, focusout',
+			function()
+			{
+				if($('#patro_name').val().length>0)					
+				$.validator.check_field('patro_name');
+			});
+	
+	if(typeof(uploader)!='undefined')
+	{
+		uploader.permitted_ext = Array('jpg','jpeg','png','gif');
+		uploader.max_uploads = 1;
+	}
+	/*
+	uploader.loaded_callback = function()
+	{
+		$('#uploads_list').addClass('hidden');
+		$('#open_file_dialog').addClass('hidden');
+		$('#send_file_msg').removeClass('hidden');
+		
+		$('#profile_form').submit();
+	};*/
+	
+	$('#delete_pic').on('click',function(){
+		if(confirm('Удалить фотографию?'))
+		{
+			$('#remove_pic').val(1);
+			$('#profile_form').submit();
+		}
+	});
+	
+	$('.confirm_email, .confirm_phone').on('click', function()
+	{
+		if ($(this).hasClass('disabled')) return false;
+
+        type = $(this).parents('.contact_row').data('type');
+		contact = $(this).parents('.contact_row').data('value');
+
+		// Отправка запроса
+		if (type == 'email')
+		{
+            send_confirmation_code(contact, type);
+
+            $('#confirm_email').modal('show');
+        }
+        else
+		{
+            $('input[name="sms_phone"]').val(contact);
+			$('#confirm_phone').modal('show');
+		}
+		
+		return false;
+	}); 
+	
+	$('#resend_btn').click(function()
+	{
+		send_confirmation_code(contact, type);
+	});
+	
+	$('#confirm_email_btn, #confirm_phone_btn').on('click', function()
+	{
+		if (type == 'phone') var field_name = 'input[name="sms_password"]';
+		else var field_name = '#confirmation_code';
+
+        var item = $(field_name);
+        var name = get_item_ls_name(item);
+        localStorage.removeItem(name);
+
+        var code = $(field_name).val();
+        if (code == '') return;
+
+		var url='/ajax/?section=check_confirm&type=' + type + '&contact=' + contact + '&code=' + code;
+		$.get(url, function(data)
+		{
+			if (data == 'false')
+			{
+				if (type == 'phone')
+                {
+                    $('.sms_password_error').html('Код введен неверно.');
+                    $('.sms_password_error').removeClass('hidden').parent('.form-group').addClass('has-danger');
+
+                    $(field_name).bind('focus', function()
+                    {
+                        $('.sms_password_error').addClass('hidden').parent('.form-group').removeClass('has-danger');
+                    });
+                }
+                else
+                {
+                    $('#error_code').html('Код введен неверно.');
+                    $('#error_code').removeClass('hidden').parent('.form-group').addClass('has-danger');
+
+                    $('#confirmation_code').bind('focus', function()
+                    {
+                        $('#error_code').addClass('hidden').parent('.form-group').removeClass('has-danger');
+                    });
+                }
+			}
+			else
+			{
+				location.reload();
+			}
+		});	
+	});
+	
+	$('#add_contact_value').bind('keyup',function(e){
+		if(e.keyCode == 13) 
+		{
+			$('#add_contact_btn').click();
+			return false;
+		}
+	});
+			
+});
+
+function get_rules_by_type(type)
+{
+	if(type=='email')
+	{
+		var rules = {
+			email:true,
+			remote: "/ajax/?section=contacts&type=email"
+		};
+	}
+	
+	if(type=='icq')
+	{
+		var rules = {
+			icq:true,
+			remote: "/ajax/?section=contacts&type=icq"
+		};
+	}
+	
+	if(type=='skype')
+	{
+		var rules = {
+			skype:true,
+			remote: "/ajax/?section=contacts&type=skype"
+		};
+	}
+	
+	if(type=='phone')
+	{
+		var rules = {
+			phone:true,
+			remote: "/ajax/?section=contacts&type=phone"
+		};
+	}
+	
+	if(type=='jabber')
+	{
+		var rules = {
+			email:true,
+			remote: "/ajax/?section=contacts&type=jabber"
+		};
+	}
+	return rules;	
+}
+
+function get_messages_by_type(type)
+{
+	if(type=='email')
+	{
+		var messages = {
+			email:'E-mail введен неверно.',
+			remote: 'Такой E-mail уже зарегистрирован.'
+		};
+	}
+	
+	if(type=='icq')
+	{
+		var messages = {
+			icq:'Номер ICQ введен неверно.',
+			remote: 'Такой номер ICQ уже зарегистрирован.'
+		};
+	}
+	
+	if(type=='skype')
+	{
+		var messages = {
+			skype:'Skype имя введено неверно.',
+			remote:'Такое Skype имя уже зарегистрировано.'
+		};
+	}
+	
+	if(type=='phone')
+	{
+		var messages = {
+			phone:'Номер телефона введен неверно.',
+			remote:'Такой номер телефона уже зарегистрирован.'
+		};
+	}
+	
+	if(type=='jabber')
+	{
+		var messages = {
+			email:'Jabber введен неверно.',
+			remote:'Jabber уже зарегистрирован.'
+		};
+	}
+	
+	return messages;
+}
+
+function submit_change()
+{
+	if(pending) 
+	{
+		setTimeout(function(){submit_change();},100);
+		return;
+	}
+	if($('#error_change_contact').is(':visible') && $('#error_change_contact').html()!='') return;
+		
+	var new_contact = $('#change_contact').val();
+	var old_contact = $('#old_contact').val();
+	var type = $('#type_selector').val();
+	if(!type) var type = $('#type_contact').val();
+	var pub = 0;
+	
+	if($('#pub_changed').is(':checked')) pub=1;  
+	var url='/ajax/?section=edit_contact&type='+type+'&contact='+new_contact+'&old='+old_contact+'&pub='+pub;
+	$.get(url,function(data){
+		if(data=='used')
+		{
+			
+		}else
+		{
+			loc=window.location.href;
+			var curr=loc.replace(/.*?#/,'');
+			location.reload();
+		}
+	});
+}
+
+function submit_add()
+{
+	if(pending) 
+	{
+		setTimeout(function(){submit_add();},100);
+		return;
+	}
+	if(!$('#error_add_contact_value').is(':visible') || $('#error_add_contact_value').html()=='')
+	{
+		$('#add_contact_form').submit();		
+	}
+}
+
+function send_confirmation_code(contact, type)
+{
+	$('#sending').removeClass('hidden');
+	$('#error_code').addClass('hidden');
+
+    var url='/ajax/?section=confirm&type=' + type + '&contact=' + contact;
+
+	$.get(url,function(data)
+	{
+		$('#sending').addClass('hidden');
+
+		if(data != 'true')
+		{
+			$('#error_code').html(data).removeClass('hidden');
+		}
+	});
+}
+timeouts = new Array();
+function validator_bind(box)
+{
+	type = box.attr('id');
+	if(type=='email')
+	{
+		var rules = {
+			email:true,
+			remote: "/ajax/?section=contacts&type=email"
+		};
+		var messages = {
+			email:'E-mail введен неверно.',
+			remote: 'Такой E-mail уже зарегистрирован.'
+		};
+	}
+	
+	if(type=='icq')
+	{
+		var rules = {
+			icq:true,
+			remote: "/ajax/?section=contacts&type=icq"
+		};
+		var messages = {
+			icq:'Номер ICQ введен неверно.',
+			remote: 'Такой номер ICQ уже зарегистрирован.'
+		};
+	}
+	
+	if(type=='skype')
+	{
+		var rules = {
+			skype:true,
+			remote: "/ajax/?section=contacts&type=skype"
+		};
+		var messages = {
+			skype:'Skype имя введено неверно.',
+			remote:'Такое Skype имя уже зарегистрировано.'
+		};
+	}
+	
+	if(type=='phone')
+	{
+		var rules = {
+			phone:true,
+			remote: "/ajax/?section=contacts&type=phone"
+		};
+		var messages = {
+			phone:'Номер телефона введен неверно.',
+			remote:'Такой номер телефона уже зарегистрирован.'
+		};
+	}
+	
+	if(type=='jabber')
+	{
+		var rules = {
+			email:true,
+			remote: "/ajax/?section=contacts&type=jabber"
+		};
+		var messages = {
+			email:'Jabber введен неверно.',
+			remote:'Jabber уже зарегистрирован.'
+		};
+	}
+	var c=0;		
+	box.find('input[type=text]').each(function(i,item){
+		item = $(item);
+		var id = type+c;
+		item.nextAll('.error_label').attr('id','error_'+id);
+		item.attr('id',id);
+		$.validator.rules[id] = rules;
+		$.validator.messages[id] = messages; 
+		$('#'+id).bind('blur',function(){
+			if($(this).val()=='') return;
+			$.validator.check_field(id);
+			})
+		.bind('keyup',function(){
+			var id = $(this).attr('validate',true).attr('id');
+			var type = id.replace(/\d+/,'');	
+			
+			$(this).parents('.contact_field').find('.confirm').addClass('disabled');
+			if($.validator.check_rule(id, type,true))
+			{
+				var item = this;
+				timeouts[id] = setTimeout(function(){
+					$.validator.check_rule(id, 'remote');
+					check_result_field(item);					
+				},1000);				
+			}
+
+			});
+		
+		c++;
+	});		
+}
+
+function check_result_field(item)
+{
+	if(pending) 
+	{
+		setTimeout(function(){check_result_field(item);},100);
+		return;
+	}
+	if(!$(item).hasClass('error'))
+	$(item).parents('.contact_field').find('.confirm').removeClass('disabled');
+}
+
+function textarea_add_counter(item,len)
+{
+	$(item).after('<div class="text_counter">Осталось: <span></span></div>');
+	var width = parseInt(item.attr('cols'))/2-1;
+	item.next('.text_counter').css('width',width+'em');
+	$(item).attr('maxlength',len);
+	$(item).bind('keyup',function(){
+		//alert('ka');
+		var item = $(this);
+		var length = item.val().length;
+		var maxlen = parseInt(item.attr('maxlength'));
+		length = maxlen-length;
+		if(length<=0)
+		{
+			length = 0;
+			item.val(item.val().substr(0, maxlen));
+		}
+		item.next('.text_counter').find('span').html(length);
+	});
+	$(item).keyup();
+}
